@@ -2,19 +2,23 @@ import React from 'react';
 import {BrowserRouter as Router, Route, Redirect, Switch} from 'react-router-dom';
 import Users from './user/pages/Users';
 import NewPlace from './places/pages/NewPlace';
+import MainNavigation from './shared/components/Navigation/MainNavigation';
 
 const App = () => {
   return (
   <Router> 
-    <Switch>                  {/*if the fitting routes are encountered, do not evalate other routes*/}
-      <Route path="/" exact>  {/*root will only be rendered if the path is exactly slash */}
-        <Users />
-      </Route>
-      <Route path="/places/new" exact>  {/* */}
-        <NewPlace />
-      </Route>
-      <Redirect to="/" />     {/*if the path is sth else redirect to slash*/}
-    </Switch>
+    <MainNavigation />
+    <main>
+      <Switch>                  {/*if the fitting routes are encountered, do not evalate other routes*/}
+        <Route path="/" exact>  {/*root will only be rendered if the path is exactly slash */}
+          <Users />
+        </Route>
+        <Route path="/places/new" exact>  {/* */}
+          <NewPlace />
+        </Route>
+        <Redirect to="/" />     {/*if the path is sth else redirect to slash*/}
+      </Switch>  
+    </main>
   </Router>
   );
 };
