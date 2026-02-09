@@ -13,7 +13,7 @@ router.get('/', usersController.getUsers)    //point towards the function, not e
 router.post(
     '/signup', 
     [
-        check('name')
+        check('userName')
             .not()
             .isEmpty()
             .isLength({max: 20}),
@@ -22,9 +22,16 @@ router.post(
             .isEmail(),
         check('password')
             .isLength({min: 6})
-     
     ], usersController.signup)
 
-router.post('/login', usersController.login)
+router.post(
+    '/login', 
+    [   
+        check('email')
+            .normalizeEmail()   //Test@test.com => test@test.com
+            .isEmail(),
+        check('password')
+            .isLength({min: 6})
+    ], usersController.login)
 
 module.exports = router
