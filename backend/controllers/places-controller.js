@@ -4,24 +4,29 @@
 // const uuid = require('uuid/package.json')
 const { v4: uuidv4 } = require('uuid');
 const { validationResult } = require('express-validator')
+
 const HttpError = require('../models/http-error')
+
+const mongoose = require('mongoose')
 const getCoordsForAddress = require('../util/location')
 const Place = require('../models/placeSchema')
-const User = require('../models/userSchema')
+const User = require('../models/userSchema');
+const { default: mongoose } = require('mongoose');
+const { use } = require('react');
 
-let DUMMY_PLACES = [
-    {
-        id: 'p1',
-        title: 'Empire State Building',
-        description: 'famous place',
-        location: {
-            lat: 40.7484474,
-            lng: -73.9871516
-        },
-        address: '20 W, New York',
-        creator: 'u1'
-    }
-]
+// let DUMMY_PLACES = [
+//     {
+//         id: 'p1',
+//         title: 'Empire State Building',
+//         description: 'famous place',
+//         location: {
+//             lat: 40.7484474,
+//             lng: -73.9871516
+//         },
+//         address: '20 W, New York',
+//         creator: 'u1'
+//     }
+// ]
 
 const getPlaceById = async (req, res, next) => {
     const placeId = req.params.pid   // {pid : 'p1'}
@@ -120,6 +125,22 @@ const createPlace = async (req, res, next) => {
         return next(error)
     }
 
+    console.log(user);
+
+    try{
+        //Sessions and Transactions: 
+        const sess = await mongoose.startSession()
+        sess.startTransaction()    //allows multiple actions independently
+        await createdPlace.save({ session: sess})
+        user.places.push(createdPlace)
+        await user.save({ session: sess })
+        await sess.commitTransaction()
+        
+    } catch (err) {
+        const error = new HttpError('Creating place failed, please try again', 500)
+        return next(error)
+    }
+ 
     try {
         await createdPlace.save()     //save() is also a promise
     } catch (err) {
@@ -177,14 +198,24 @@ const deletePlace = async (req, res, next) => {
 
     let place
     try {
-        place = await Place.findById(placeId)
+        place = await Place.findById(placeId).populate('creator')  //populate() -> 
     } catch (err) {
         const error = new HttpError('Could not delete the place, try again', 500)
         return next(error)
     }
 
+    if(!place){
+        const error = new HttpError('could not find the place', 404)
+        return next(error)
+    }
+
     try {
-        await place.remove()
+        const sess = await mongoose.startSession()
+        sess.startTransaction()
+        await place.remove({ session: sess })
+        place.creator.places.pull()
+        await place.creator.save( {session: sess})
+        await sess.commitTransaction()
     } catch (err) {
         const error = new HttpError('Something went wrong, could not delete the place, try again', 500)
         return next(error)
