@@ -11,8 +11,7 @@ const mongoose = require('mongoose')
 const getCoordsForAddress = require('../util/location')
 const Place = require('../models/placeSchema')
 const User = require('../models/userSchema');
-const { default: mongoose } = require('mongoose');
-const { use } = require('react');
+// const { use } = require('react');
 
 // let DUMMY_PLACES = [
 //     {

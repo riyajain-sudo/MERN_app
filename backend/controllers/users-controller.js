@@ -29,7 +29,7 @@ const signup = async (req, res, next) => {
     const errors = validationResult(req)         //checks for validation errors
     if( !errors.isEmpty() ) {
         // console.log(errors);
-        return next (new HttpError('Invalid inputs', 422))
+        return next (new HttpError('Invalid inputs, please check your data', 422))
     }
 
     const { userName, email, password } = req.body

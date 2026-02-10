@@ -9,6 +9,16 @@ const HttpError = require('./models/http-error')
 const app = express()
 
 app.use(bodyParser.json())
+  
+//middleware for CORS error
+app.use((req, res, next) => {                 
+    res.setHeader('Access-Control-Allow-Origin', '*')    //allow all domains
+    res.setHeader(
+        'Access-Control-Allow-Headers',                  //allow these headers
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization')    
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE')   //controls the http methods used on the front end
+    next()
+})
 
 app.use('/api/places', placesRoutes)      // => /api/places... 
 app.use('/api/users', usersRoutes)
@@ -26,7 +36,7 @@ app.use((error, req, res, next) => {
 })
 
 mongoose
-    .connect('mongodb+srv://Riya:4S1mXw8Wib17NK1M@cluster0.u6q0sdv.mongodb.net/places?appName=Cluster0')
+    .connect('mongodb+srv://Riya:4S1mXw8Wib17NK1M@cluster0.u6q0sdv.mongodb.net/mern?appName=Cluster0')
     .then(() => {
         app.listen(5000)
     })
