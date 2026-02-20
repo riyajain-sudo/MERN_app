@@ -46,36 +46,37 @@ const UpdatePlace = () => {
         setFormData(
         {
           title: {
-            value: responseData.title,
+            value: responseData.place.title,
             isValid: true
           },
           description: {
-            value: responseData.description,
+            value: responseData.place.description,
             isValid: true
           }
         },
         true
       );
-      } catch (err) {
-        
-      }
+      } catch (err) {}
     }
     fetchPlace()
   }, [sendRequest, placeId, setFormData])
 
   const placeUpdateSubmitHandler = async event => {
-  try {
     event.preventDefault();
-    await sendRequest(`https://localhost:5000/api/places/${placeId}`, 'PATCH', JSON.stringify({
-      title: formState.inputs.title.value,
-      description: formState.inputs.description.value
-    }), {
-      'Content-Type': 'application/json'
-    })
-  history.push('/'+ auth.userId + '/places')
-  } catch (error) {
-    
-  }
+    try {
+      await sendRequest(
+        `https://localhost:5000/api/places/${placeId}`, 
+        'PATCH', 
+        JSON.stringify({
+          title: formState.inputs.title.value,
+          description: formState.inputs.description.value
+      }), 
+      {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + auth.token
+      })
+    history.push('/'+ auth.userId + '/places')
+  } catch (error) {}
 }
 
   if (isLoading) {

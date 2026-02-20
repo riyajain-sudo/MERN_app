@@ -1,6 +1,8 @@
 // const { v4: uuidv4 } = require('uuid');
 const { validationResult } = require('express-validator')
 
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 const HttpError = require('../models/http-error');
 const User = require('../models/userSchema')
 
@@ -41,7 +43,7 @@ const signup = async (req, res, next) => {
         const error = new HttpError('Signing up failed, try again', 500)
         return next(error)
     }
-    
+
     if(existingUser){
         const error = new HttpError('User already exists, try login', 422)
         return next(error)
@@ -52,11 +54,22 @@ const signup = async (req, res, next) => {
     //     throw new HttpError('User already exists', 422)
     // }
     
+    let hashedPassword
+    try {
+        hashedPassword = await bcrypt.hash(password, 12)     //12 -> salting rounds
+    }catch(err) {
+        const error = new HttpError(
+            'Could not create user, try again', 
+            500
+        )
+        return next(error)
+    }
+    
     const createUser = new User({
         userName,
         email,
-        password,
-        image: 'https://static.vecteezy.com/system/resources/thumbnails/052/189/266/small/user-man-account-person-people-half-body-head-stickman-stick-figure-profile-silhouette-network-contact-black-white-sign-icon-shape-outline-vector.jpg',
+        image: req.file.path,
+        password: hashedPassword,
         places: []
     })
 
@@ -67,9 +80,19 @@ const signup = async (req, res, next) => {
         return next(error)
     }
 
-    // DUMMY_USERS.push(createdUser)
-
-    res.status(201).json({user: createUser.toObject( { getters: true }) })   //removes the underscore from in front of the ID property
+    let token
+    try {
+        token = jwt.sign(
+            {userId: createUser.id, email: createUser.email},
+            'private_key_dont_share',
+            { expiresIn: '1hr'}
+        )
+    } catch (err) {
+        const error = new HttpError('Sign up failed, try again', 500)
+        return next(error)
+    }
+    
+    res.status(201).json({ userId: createUser.id, email: createUser.email, token: token })   //removes the underscore from in front of the ID property
 }
 
 const login = async (req, res, next) =>{
@@ -83,20 +106,45 @@ const login = async (req, res, next) =>{
         return next(error)
     }   
     
-    if(!existingUser || existingUser.password !== password){
-        const error = new HttpError('Invalid credentials, could not log you in', 401)
+    if(!existingUser){
+        const error = new HttpError('Invalid credentials, could not log you in', 403)
         return next(error)
     }
 
+    let isValidPassword = false
+    try{
+        isValidPassword = await bcrypt.compare(password, existingUser.password)
+    } catch(err) {
+        const error = new HttpError('Could not log you in, check your password and try again', 500)
+    }
+
+    if(!isValidPassword) {
+        const error = new HttpError('Invalid credentials, could not log you in', 403)
+        return next(error)
+    }
+
+
     // const identifiedUser = DUMMY_USERS.find(u => u.email === email)
     // if(!identifiedUser || identifiedUser.password !== password) {
-    //     return next(new HttpError('Could not identify User, credentials seem to be wrong', 401))
+    //     return next(new HttpError('Could not identify User, credentials seem to be wrong', 403))
     // }
 
+    let token
+    try {
+        token = jwt.sign(
+            {userId: existingUser.id, email: existingUser.email},
+            'private_key_dont_share',
+            { expiresIn: '1hr'}
+        )
+    } catch (err) {
+        const error = new HttpError('Logging in failed, try again', 500)
+        return next(error)
+    }
 
     res.json({
-        message: 'Logged in successfully!', 
-        user: existingUser.toObject({getters: true})
+        userId: existingUser.id,
+        email: existingUser.email,
+        token: token
     })
 }
 

@@ -19,11 +19,13 @@ const UserPlaces = () => {
           `http://localhost:5000/api/places/user/${userId}`
         );
         setLoadedPlaces(responseData.places);
+        // console.log("Full response:", responseData);
       } catch (err) {}
     };
     fetchPlaces();
   }, [sendRequest, userId]);
 
+  // console.log("Loaded Places:", loadedPlaces);
 
   const placeDeletedHandler = deletedPlaceId => {
     setLoadedPlaces(prevPlaces =>
