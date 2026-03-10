@@ -50,7 +50,7 @@ Users can add places they like along with basic details and view them within the
 - Map API     (replace it by name of the Map API used)
 
 
-##How it works?
+## How it works?
 The application follows a typical MERN stack architecture where the frontend and backend communicate through RESTful APIs. Users interact with the React frontend, which sends requests to the backend server. The backend processes these requests, performs database operations, and sends responses back to the frontend.
 
 
