@@ -71,7 +71,7 @@ const getPlacesByUserId = async (req, res, next) => {
   }
 
   // if (!places || places.length === 0) {
-  if (!userWithPlaces || userWithPlaces.places.length === 0) {
+  if (!userWithPlaces) {
     return next(
       new HttpError('Could not find places for the provided user id.', 404)
     );
@@ -224,7 +224,7 @@ const deletePlace = async (req, res, next) => {
         await place.deleteOne({ session: sess })
 
         place.creator.places.pull(place._id)
-        
+
         await place.creator.save( {session: sess})
         await sess.commitTransaction()
     } catch (err) {
