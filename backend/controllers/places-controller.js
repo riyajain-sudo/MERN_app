@@ -210,7 +210,7 @@ const deletePlace = async (req, res, next) => {
         return next(error)
     }
 
-    if (!place.creator.id !== req.userData.userId) {
+    if (place.creator._id.toString() !== req.userData.userId) {
         const error = new HttpError('you are not allowed to delete this place.', 401)
         return next(error)
     }
@@ -220,8 +220,11 @@ const deletePlace = async (req, res, next) => {
     try {
         const sess = await mongoose.startSession()
         sess.startTransaction()
-        await place.remove({ session: sess })
-        place.creator.places.pull()
+
+        await place.deleteOne({ session: sess })
+
+        place.creator.places.pull(place._id)
+        
         await place.creator.save( {session: sess})
         await sess.commitTransaction()
     } catch (err) {

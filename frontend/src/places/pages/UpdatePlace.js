@@ -65,7 +65,7 @@ const UpdatePlace = () => {
     event.preventDefault();
     try {
       await sendRequest(
-        `https://localhost:5000/api/places/${placeId}`, 
+        `http://localhost:5000/api/places/${placeId}`, 
         'PATCH', 
         JSON.stringify({
           title: formState.inputs.title.value,
