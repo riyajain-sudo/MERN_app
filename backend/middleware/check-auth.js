@@ -2,17 +2,19 @@
 
 const jwt = require('jsonwebtoken')
 const HttpError = require("../models/http-error")
+const { getConfig } = require('../config')
 
 module.exports = (req, res, next) => {
     if (req.method === 'OPTIONS') {
         return next()
     }
     try {
-        const token = req.headers.authorization.split(' ')[1]   //Authorization: 'Bearer TOKEN'
-        if (!token) {
+        const authorization = req.headers.authorization || ''
+        const [scheme, token] = authorization.split(' ')
+        if (scheme !== 'Bearer' || !token) {
             throw new Error('Authentication failed!')
         }
-        const decodedToken = jwt.verify(token, 'private_key_dont_share',)
+        const decodedToken = jwt.verify(token, getConfig().jwtSecret)
         req.userData = {userId: decodedToken.userId}
         next()
 

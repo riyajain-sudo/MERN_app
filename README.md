@@ -1,6 +1,6 @@
 # TOURISM (MERN APP)
 
-A full-stack MERN application where users can share places (with images & location on a map) with other users.
+A full-stack MERN application where users can share places, descriptions, and images with other users.
 
 ## Overview
 
@@ -11,10 +11,10 @@ Users can add places they like along with basic details and view them within the
 ## Features
 ### Frontend
 - User authentication (signup and login)
-- Add new places with images and location
+- Add new places with images and descriptions
 - View places shared by other users
 - Update and delete places added by the user
-- Interactive map to display place locations
+- Map/geocoding is currently disabled; the application does not fabricate or persist coordinates
 - Client-side state management
 
 ### Backend
@@ -47,10 +47,37 @@ Users can add places they like along with basic details and view them within the
 
 ### Other Tools & Services
 - Git & GitHub
-- Map API     (replace it by name of the Map API used)
 
 
 ## How it works?
 The application follows a typical MERN stack architecture where the frontend and backend communicate through RESTful APIs. Users interact with the React frontend, which sends requests to the backend server. The backend processes these requests, performs database operations, and sends responses back to the frontend.
 
 
+
+## Local setup
+
+Use Node.js 20.4 or newer. Install backend and frontend dependencies separately with their committed lockfiles:
+
+```sh
+cd backend && npm ci
+cd ../frontend && npm ci
+```
+
+Start a MongoDB deployment that supports transactions (a replica set or sharded cluster is required by the current place create/delete flows). In a backend terminal, set `MONGODB_URI` to that database, set `JWT_SECRET` to a newly generated random value of at least 32 characters, and optionally set `PORT` (default `5000`), then run `npm start`. For a local Unix-like shell:
+
+```sh
+cd backend
+export MONGODB_URI='mongodb://127.0.0.1:27017/mern'
+export JWT_SECRET="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("hex"))')"
+npm start
+```
+
+The example URI works only if local MongoDB meets the transaction requirement. `backend/.env.example` contains placeholders; the server reads process environment variables and does not automatically load `.env`. Startup refuses to connect if the URI or a sufficiently long signing secret is missing. Never reuse a secret that was committed in the past.
+
+In another terminal, optionally set `REACT_APP_API_URL` (default `http://localhost:5000`) and run `npm start` from `frontend/`. Use a reachable backend URL for deployed browsers; `localhost` there refers to the visitor's own device. `frontend/.env.example` is a public, non-secret example. Uploaded images are stored under `backend/uploads/images/`; ensure that directory is writable by the backend process.
+
+Run the focused offline backend regression tests with `cd backend && npm test`. They use mocked database models and do not contact MongoDB. Full end-to-end tests and a frontend build still require owner-provided database/configuration and frontend dependencies. Map rendering and geocoding need a real provider implementation and configuration before that UI is advertised again.
+
+## Credential rotation required
+
+A prior repository revision contained exposed database and JWT signing material. Rotating or removing source values does not revoke them: the owner must rotate/restrict the database credential in its authorized control plane, replace the JWT secret, and invalidate tokens signed with the old key. No live services were accessed as part of these changes.

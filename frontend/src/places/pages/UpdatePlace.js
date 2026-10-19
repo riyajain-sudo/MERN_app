@@ -1,3 +1,4 @@
+import { apiUrl } from '../../shared/util/api-url';
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 
@@ -22,7 +23,7 @@ const UpdatePlace = () => {
   const { isLoading, error, sendRequest, clearError} = useHttpClient()
   const [loadedPlace, setLoadedPlace] = useState()
   const placeId = useParams().placeId;
-  const history = useHistory() 
+  const history = useHistory()
 
   const [formState, inputHandler, setFormData] = useForm(
     {
@@ -41,7 +42,7 @@ const UpdatePlace = () => {
   useEffect( () => {
     const fetchPlace = async () => {
       try {
-        const responseData = await sendRequest(`http://localhost:5000/api/places/${placeId}`)
+        const responseData = await sendRequest(apiUrl(`/api/places/${placeId}`))
         setLoadedPlace(responseData.place)
         setFormData(
         {
@@ -65,12 +66,12 @@ const UpdatePlace = () => {
     event.preventDefault();
     try {
       await sendRequest(
-        `http://localhost:5000/api/places/${placeId}`, 
-        'PATCH', 
+        apiUrl(`/api/places/${placeId}`),
+        'PATCH',
         JSON.stringify({
           title: formState.inputs.title.value,
           description: formState.inputs.description.value
-      }), 
+      }),
       {
         'Content-Type': 'application/json',
         Authorization: 'Bearer ' + auth.token
@@ -98,8 +99,8 @@ const UpdatePlace = () => {
   }
 
   return (
-    <React.Fragment> 
-      <ErrorModal error={error} onClear={clearError} />   
+    <React.Fragment>
+      <ErrorModal error={error} onClear={clearError} />
       {!isLoading && loadedPlace && <form className="place-form" onSubmit={placeUpdateSubmitHandler}>
         <Input
           id="title"

@@ -1,3 +1,4 @@
+import { apiUrl } from "../../shared/util/api-url";
 import React, { useEffect, useState } from "react";
 import UsersList from "../components/UsersList";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
@@ -13,7 +14,7 @@ const Users = () => {
         const fetchUsers = async () => {
             try {                              
                 const responseData = await sendRequest(    //with fetch(), default request type is GET request
-                    'http://localhost:5000/api/users'
+                    apiUrl('/api/users')
                 )   
 
                 setLoadedUsers(responseData.users)
