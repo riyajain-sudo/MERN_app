@@ -1,3 +1,4 @@
+import { apiUrl } from '../../shared/util/api-url';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -16,7 +17,7 @@ const UserPlaces = () => {
     const fetchPlaces = async () => {
       try {
         const responseData = await sendRequest(
-          `http://localhost:5000/api/places/user/${userId}`
+          apiUrl(`/api/places/user/${userId}`)
         );
         setLoadedPlaces(responseData.places);
         // console.log("Full response:", responseData);

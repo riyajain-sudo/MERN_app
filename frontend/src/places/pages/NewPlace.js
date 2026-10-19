@@ -1,3 +1,4 @@
+import { apiUrl } from '../../shared/util/api-url';
 import React, {useContext} from 'react';
 import { useHistory } from 'react-router-dom'
 
@@ -51,8 +52,8 @@ const NewPlace = () => {
       formData.append('address', formState.inputs.address.value)
       formData.append('image', formState.inputs.image.value)
       await sendRequest(
-        'http://localhost:5000/api/places', 
-        'POST', 
+        apiUrl('/api/places'),
+        'POST',
         formData, {
           Authorization: 'Bearer ' + auth.token
         }
@@ -92,9 +93,9 @@ const NewPlace = () => {
           errorText="Please enter a valid address."
           onInput={inputHandler}
         />
-        <ImageUpload 
-          id="image" 
-          onInput={inputHandler} 
+        <ImageUpload
+          id="image"
+          onInput={inputHandler}
           errorText={"Please provide an Image."}
         />
         <Button type="submit" disabled={!formState.isValid}>

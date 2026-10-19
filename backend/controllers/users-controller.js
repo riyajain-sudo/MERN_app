@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const HttpError = require('../models/http-error');
 const User = require('../models/userSchema')
+const { getConfig } = require('../config')
 
 // const DUMMY_USERS = [
 //     { 
@@ -19,7 +20,7 @@ const getUsers = async (req, res, next) =>{
     // res.json( {users: DUMMY_USERS} )
     let users
     try {
-        users = await User.find({}, '-password')      //minus sign to exclude this field
+        users = await User.find({}, 'userName image places')
     } catch (err) {
         const error = new HttpError('Fetching users failed, try again', 500)
         return next(error)
@@ -32,6 +33,10 @@ const signup = async (req, res, next) => {
     if( !errors.isEmpty() ) {
         // console.log(errors);
         return next (new HttpError('Invalid inputs, please check your data', 422))
+    }
+
+    if (!req.file) {
+        return next(new HttpError('A profile image is required', 400))
     }
 
     const { userName, email, password } = req.body
@@ -84,7 +89,7 @@ const signup = async (req, res, next) => {
     try {
         token = jwt.sign(
             {userId: createUser.id, email: createUser.email},
-            'private_key_dont_share',
+            getConfig().jwtSecret,
             { expiresIn: '1hr'}
         )
     } catch (err) {
@@ -115,7 +120,7 @@ const login = async (req, res, next) =>{
     try{
         isValidPassword = await bcrypt.compare(password, existingUser.password)
     } catch(err) {
-        const error = new HttpError('Could not log you in, check your password and try again', 500)
+        return next(new HttpError('Could not log you in, please try again', 500))
     }
 
     if(!isValidPassword) {
@@ -133,7 +138,7 @@ const login = async (req, res, next) =>{
     try {
         token = jwt.sign(
             {userId: existingUser.id, email: existingUser.email},
-            'private_key_dont_share',
+            getConfig().jwtSecret,
             { expiresIn: '1hr'}
         )
     } catch (err) {

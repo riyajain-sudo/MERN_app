@@ -1,3 +1,4 @@
+import { apiUrl } from '../../shared/util/api-url';
 import React, { useState, useContext } from 'react';
 
 import Card from '../../shared/components/UIElements/Card';
@@ -70,12 +71,12 @@ const Auth = () => {
 
     // console.log(formState.inputs);
 
-    if (isLoginMode){ 
+    if (isLoginMode){
       try {
-        //fetch Api -> sends http request 
+        //fetch Api -> sends http request
         const responseData = await sendRequest(
-          'http://localhost:5000/api/users/login', 
-          'POST', 
+          apiUrl('/api/users/login'),
+          'POST',
           JSON.stringify({
             email: formState.inputs.email.value,
             password: formState.inputs.password.value
@@ -83,10 +84,10 @@ const Auth = () => {
           {
             'Content-Type': 'application/json'
           },
-        ) 
+        )
         auth.login(responseData.userId, responseData.token);
-      } catch (err) {} 
-        
+      } catch (err) {}
+
     } else {
       try {
         const formData = new FormData()                //browser API
@@ -95,22 +96,22 @@ const Auth = () => {
         formData.append('password', formState.inputs.password.value)
         formData.append('image', formState.inputs.image.value)
 
-        //fetch Api -> sends http request 
+        //fetch Api -> sends http request
         const responseData = await sendRequest(
-          'http://localhost:5000/api/users/signup', 
-          'POST', 
-          formData 
+          apiUrl('/api/users/signup'),
+          'POST',
+          formData
         )
         auth.login(responseData.userId, responseData.token);
 
       } catch (err) {
-       
-      }  
-    }               
+
+      }
+    }
   };
 
   return (
-    <React.Fragment>  
+    <React.Fragment>
       <ErrorModal error={error} onClear={clearError}/>
       <Card className="authentication">
         {isLoading && <LoadingSpinner asOverlay/>}

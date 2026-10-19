@@ -9,6 +9,7 @@ const placesRoutes = require('./routes/places-routes')
 const usersRoutes = require('./routes/users-routes')
 
 const HttpError = require('./models/http-error')
+const { getConfig } = require('./config')
 const app = express()
 
 app.use(bodyParser.json())
@@ -36,7 +37,7 @@ app.use((req, res, next) => {
 app.use((error, req, res, next) => {
     if(req.file) {
         fs.unlink(req.file.path, (err) => {
-            console.log(err);
+            if (err) console.error('Could not clean up the uploaded file.')
         })
     }
     if(res.headerSent) {
@@ -45,12 +46,27 @@ app.use((error, req, res, next) => {
     res.status(error.code || 500).json({message: error.message || 'An unknown error occurred!'})
 })
 
-mongoose
-    .connect('mongodb+srv://Riya:4S1mXw8Wib17NK1M@cluster0.u6q0sdv.mongodb.net/mern?appName=Cluster0')
-    .then(() => {
-        app.listen(5000)
-    })
-    .catch(err => {
-        console.log(err);
-    })
+const startServer = async () => {
+    let config
+    try {
+        config = getConfig()
+    } catch (error) {
+        console.error(error.message)
+        process.exitCode = 1
+        return
+    }
 
+    try {
+        await mongoose.connect(config.mongodbUri)
+        app.listen(config.port)
+    } catch (error) {
+        console.error('Database connection failed; server was not started.')
+        process.exitCode = 1
+    }
+}
+
+if (require.main === module) {
+    startServer()
+}
+
+module.exports = { app, startServer }

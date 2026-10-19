@@ -9,7 +9,6 @@ const { validationResult } = require('express-validator')
 const HttpError = require('../models/http-error')
 
 const mongoose = require('mongoose')
-const getCoordsForAddress = require('../util/location')
 const Place = require('../models/placeSchema')
 const User = require('../models/userSchema');
 // const { use } = require('react');
@@ -91,21 +90,17 @@ const createPlace = async (req, res, next) => {
         return next(new HttpError('Invalid inputs', 422))
     }
 
+    if (!req.file) {
+        return next(new HttpError('A place image is required', 400))
+    }
+
     const { title, description, address} = req.body          //object destructuring
     //const title = req.body.title
 
-    let coordinates
-    try {
-        coordinates = await getCoordsForAddress(address)
-    } catch (error) {
-        return next(error)
-    }
-    
     const createdPlace = new Place({
         title,
         description,
         address,
-        location: coordinates,
         image: req.file.path,
         creator: req.userData.userId
     })
@@ -123,8 +118,6 @@ const createPlace = async (req, res, next) => {
         const error = new HttpError('Could not find user for provided id', 404)
         return next(error)
     }
-
-    console.log(user);
 
     try{
         //Sessions and Transactions: 
@@ -155,7 +148,7 @@ const createPlace = async (req, res, next) => {
 const updatePlace = async (req, res, next) => {
     const errors = validationResult(req)         //checks for validation errors
     if( !errors.isEmpty() ) {
-        return new HttpError('Invalid inputs', 422)
+        return next(new HttpError('Invalid inputs', 422))
     }
 
     const { title, description } = req.body
@@ -167,6 +160,10 @@ const updatePlace = async (req, res, next) => {
     } catch (err) {
         const error = new HttpError('Could not update the place, try again', 500)
         return next(error)
+    }
+
+    if (!place) {
+        return next(new HttpError('Could not find the place', 404))
     }
 
     if (place.creator.toString() !== req.userData.userId) {
@@ -233,7 +230,7 @@ const deletePlace = async (req, res, next) => {
     }
 
     fs.unlink(imagePath, err => {
-        console.log(err);  
+        if (err) console.error('Could not remove deleted place image.')
     })
 
     res.status(200).json({message: 'Deleted Place.'})
